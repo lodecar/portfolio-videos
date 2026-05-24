@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import banderasVideo from "../assets/videos/banderas.mp4";
 import bubbleShooterVideo from "../assets/videos/bubbleshooter.mp4";
+import ej1P1Video from "../assets/videos/ej1_p1.mp4";
+import ej2P2Video from "../assets/videos/ej2_p2.mp4";
 import emisoresVideo from "../assets/videos/emisores.mp4";
 import fuegoEmisorVideo from "../assets/videos/fuegoEmisor.mp4";
 import funcOscilatoriaVideo from "../assets/videos/funcOscilatoria.mp4";
@@ -11,23 +13,28 @@ import muelleVideo from "../assets/videos/muelle.mp4";
 import partiGirandoVideo from "../assets/videos/partiGirando.mp4";
 import particulaFlotanteVideo from "../assets/videos/particulaFLotante.mp4";
 import telaBolaVideo from "../assets/videos/telabola.mp4";
+import practica3Video1 from "../assets/videos/video1.mp4";
 import vientoVideo from "../assets/videos/viento.mp4";
 import {
   ArrowLeft,
   ArrowRight,
   Atom,
   Boxes,
+  ExternalLink,
+  Gauge,
   Play,
   Waves,
 } from "lucide-react";
 
-type Page = "inicio" | "videos";
+type Page = "inicio" | "videos" | "labs";
 type TopicFilter = "tema-1" | "tema-2" | "tema-3";
+type LabId = "practica-1" | "practica-2" | "practica-3" | "practica-4";
 
 type ProjectVideo = {
   title: string;
   category: string;
   description: string;
+  model: string;
   video: string;
   poster?: string;
   bg: string;
@@ -38,6 +45,15 @@ type ProjectVideo = {
 };
 
 type ProjectRole = "center" | "left" | "right" | "back";
+type LabDemo = {
+  title: string;
+  category: string;
+  description: string;
+  model: string;
+  video?: string;
+  url?: string;
+  accent: string;
+};
 
 
 const TRANSITION = "650ms cubic-bezier(0.4,0,0.2,1)";
@@ -57,6 +73,12 @@ const TOPIC_ACCENTS: Record<TopicFilter, { title: string; detail: string; color:
     detail: "Telas, banderas, pelo y masa-muelle.",
     color: "#FFE66D",
   },
+};
+const LAB_ACCENTS: Record<LabId, { color: string; icon: "waves" | "atom" | "boxes" | "gauge" }> = {
+  "practica-1": { color: "#7CF7FF", icon: "waves" },
+  "practica-2": { color: "#4DFFBE", icon: "atom" },
+  "practica-3": { color: "#FFE66D", icon: "boxes" },
+  "practica-4": { color: "#F0ABFC", icon: "gauge" },
 };
 
 const TOPICS: Array<{ id: TopicFilter; label: string; description: string }> = [
@@ -83,6 +105,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 1 · Osciladores y funciones",
     description:
       "Este vídeo representa el movimiento de una partícula sobre una función oscilatoria. La idea principal del tema es que una trayectoria puede describirse como una función dependiente del tiempo, por ejemplo y = sin(x) o y = sin(x) · e^(-kx). La partícula avanza mientras su altura sube y baja siguiendo la onda: la amplitud indica cuánto se separa del eje, la frecuencia indica cuántas oscilaciones aparecen y el posible factor de amortiguación reduce poco a poco el movimiento. Sirve para ver cómo una función matemática se convierte en una trayectoria animada.",
+    model: "Función paramétrica y oscilador: y = sin(x), y = sin(x) · e^(-kx), amplitud A, frecuencia f y evolución temporal x = x0 + v · t.",
     video: funcOscilatoriaVideo,
     poster: "/posters/funcOscilatoria.jpg",
     bg: "#123C69",
@@ -96,6 +119,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 1 · Trayectorias",
     description:
       "La montaña rusa trabaja la cinemática: el movimiento se estudia a partir de posición, velocidad y aceleración, sin centrarse todavía en todas las fuerzas internas. La partícula recorre una trayectoria por tramos, y en cada tramo la pendiente modifica su velocidad. Cuando la pendiente baja, el movimiento tiende a acelerarse; cuando sube, pierde velocidad. Conceptualmente se relaciona con x = x0 + v · Δt para velocidad constante y con v = u + a · Δt cuando aparece aceleración. El vídeo muestra cómo el cambio de inclinación afecta al desplazamiento y al ritmo de la partícula.",
+    model: "Cinemática por tramos: x' = x + v · Δt, v' = v + a · Δt y variación de velocidad según la pendiente del recorrido.",
     video: montanaRusaVideo,
     poster: "/posters/montanaRusa.jpg",
     bg: "#164E63",
@@ -109,6 +133,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 1 · Hooke y amortiguación",
     description:
       "Este ejercicio muestra un sistema elástico basado en un muelle. Su funcionamiento se entiende con la Ley de Hooke: F = k · (Lactual - Lreposo), donde k mide la rigidez, Lactual es la longitud del muelle en cada instante y Lreposo es la longitud natural. Si el muelle se estira o comprime, aparece una fuerza de recuperación que intenta devolverlo al equilibrio. Si además hay amortiguación, se añade una resistencia proporcional a la velocidad, reduciendo la oscilación con el tiempo. El vídeo permite ver deformación, recuperación, equilibrio y pérdida progresiva de energía.",
+    model: "Muelle elástico: F = -k · x, con x = Lactual - Lreposo; amortiguación proporcional a la velocidad para disipar energía.",
     video: muelleVideo,
     poster: "/posters/muelle.jpg",
     bg: "#3B0764",
@@ -122,6 +147,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 1 · Movimiento circular",
     description:
       "Aquí se representa un movimiento circular uniforme: una partícula gira alrededor de un punto manteniendo un radio r. El tema lo describe con periodo T, frecuencia f = 1 / T y velocidad angular ω = 2πf. A partir de eso, la posición se calcula con x = r · cos(ωt) e y = r · sin(ωt). Aunque la rapidez angular sea constante, la dirección de la velocidad cambia continuamente, por eso la trayectoria es circular. El vídeo muestra cómo la trigonometría transforma un ángulo que crece con el tiempo en coordenadas x, y sobre una órbita.",
+    model: "Movimiento circular uniforme: f = 1 / T, ω = 2πf, x = r · cos(ωt), y = r · sin(ωt).",
     video: partiGirandoVideo,
     poster: "/posters/partiGirando.jpg",
     bg: "#14532D",
@@ -135,6 +161,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 1 · Vectores y disparo",
     description:
       "Este ejercicio aplica vectores para controlar dirección y velocidad en un disparo. Cada bola tiene una posición y una velocidad representadas como vectores; el módulo |v| indica la rapidez y la dirección marca hacia dónde avanza. El desplazamiento se actualiza con la idea básica p' = p + v · Δt. Si se apunta hacia un objetivo, la dirección puede obtenerse con el vector que va desde el lanzador hasta el punto de mira y normalizarse para conservar solo la dirección. El vídeo muestra cómo las operaciones vectoriales del tema permiten crear un movimiento interactivo y predecible.",
+    model: "Movimiento vectorial: dirección = objetivo - origen, normalización d = v / |v| y actualización p' = p + v · Δt.",
     video: bubbleShooterVideo,
     poster: "/posters/bubbleshooter.jpg",
     bg: "#7C2D12",
@@ -148,6 +175,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 2 · Atracción entre partículas",
     description:
       "Este vídeo muestra un sistema de partículas que se atraen entre sí mediante una fuerza. Cada partícula tiene posición, velocidad y aceleración, y su movimiento se entiende con la Segunda Ley de Newton: F = m · a. La atracción depende de la dirección que une unas partículas con otras, por lo que cada una recibe una fuerza resultante que modifica su trayectoria. Si la fuerza aumenta al estar cerca o disminuye con la distancia, el sistema forma agrupaciones, órbitas o movimientos colectivos. La práctica sirve para ver cómo una regla sencilla de atracción genera comportamiento emergente en todo el conjunto.",
+    model: "Sistema de partículas con atracción: Fresultante = ΣFi, a = F / m, v' = v + a · Δt y p' = p + v' · Δt.",
     video: vientoVideo,
     poster: "/posters/viento.jpg",
     bg: "#063F46",
@@ -161,6 +189,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 2 · Sistemas de partículas",
     description:
       "El emisor genera partículas nuevas a lo largo del tiempo, cada una con un estado propio: posición inicial, velocidad, aceleración, masa y tiempo de vida. El funcionamiento se basa en actualizar el sistema por pasos: primero se crean partículas, después se aplican fuerzas y finalmente se elimina o atenúa lo que ya ha agotado su vida útil. La fórmula básica del movimiento es v' = v + a · Δt y p' = p + v' · Δt. El vídeo enseña cómo muchas partículas simples, al combinarse, producen un comportamiento visual complejo.",
+    model: "Emisor de partículas: estado individual (p, v, a, vida), integración v' = v + a · Δt, p' = p + v' · Δt y eliminación por tiempo de vida.",
     video: emisoresVideo,
     poster: "/posters/emisores.jpg",
     bg: "#35125C",
@@ -174,6 +203,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 2 · Partículas y vida útil",
     description:
       "Esta práctica usa un emisor para construir un efecto de fuego. Las partículas nacen cerca de una zona de emisión, ascienden por una fuerza vertical o flotabilidad y van cambiando durante su vida: pueden reducir tamaño, perder opacidad o variar de color para simular calor y disipación. Físicamente se interpreta como un sistema donde cada partícula integra fuerzas sencillas en el tiempo, mientras el conjunto crea la ilusión de llama. La clave está en combinar dirección inicial, aceleración ascendente, turbulencia y desaparición progresiva.",
+    model: "Partículas con fuerza ascendente: a = F / m, vida útil decreciente, variación de tamaño/color/opacidad y actualización p' = p + v' · Δt.",
     video: fuegoEmisorVideo,
     poster: "/posters/fuegoEmisor.jpg",
     bg: "#7C2D12",
@@ -187,6 +217,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 2 · Fuerzas equilibradas",
     description:
       "La partícula flotante representa un cuerpo sometido a varias fuerzas que se compensan parcialmente. La gravedad tira hacia abajo, mientras una fuerza ascendente, parecida al empuje o flotabilidad, evita que caiga sin control. Cuando la fuerza resultante no es cero, aparece aceleración; cuando las fuerzas se equilibran, la partícula mantiene un movimiento suave o queda cerca de una posición estable. El vídeo ilustra la relación entre fuerza neta, aceleración y estabilidad, mostrando cómo pequeños cambios producen oscilaciones o deriva.",
+    model: "Equilibrio de fuerzas: Fresultante = Fflotación - Fgravedad - Famortiguación; si Fresultante ≠ 0, a = Fresultante / m.",
     video: particulaFlotanteVideo,
     poster: "/posters/particulaFlotante.jpg",
     bg: "#0F3A5F",
@@ -200,6 +231,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 3 · Malla masa-muelle 2D",
     description:
       "Esta práctica representa una tela como un objeto deformable: una malla 2D formada por partículas con masa conectadas mediante muelles sin masa. Cada muelle intenta recuperar su longitud de reposo siguiendo la Ley de Hooke, F = -k · x, donde x es la extensión respecto a la distancia natural. A esa fuerza interna se le puede añadir amortiguación, F = -c · (vi - vvecino), para reducir vibraciones. La tela cae por gravedad, se deforma al acumular fuerzas en sus vértices y colisiona con la esfera, de modo que la malla se adapta y se desliza alrededor del obstáculo.",
+    model: "Malla masa-muelle 2D: Fmuelle = -k · x, x = d - Lreposo, amortiguación Fd = -c · (vi - vvecino), gravedad y colisión con esfera.",
     video: telaBolaVideo,
     poster: "/posters/tela.jpg",
     bg: "#18206F",
@@ -213,6 +245,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 3 · Viento y estructuras de malla",
     description:
       "Las banderas muestran una malla masa-muelle 2D visualizada en 3D. Algunos vértices quedan anclados para simular el mástil, mientras el resto responde a fuerzas internas y externas. En el tema se distinguen muelles structured, que dan estabilidad básica; shear, que transmiten energía en diagonal; y bend, que reducen arrugas excesivas. El viento actúa como una fuerza externa proporcional a la orientación de la superficie, normalmente relacionada con el producto escalar entre el vector viento y la normal de la malla. Así se comparan deformación, ondas y estabilidad según la estructura usada.",
+    model: "Banderas masa-muelle: muelles structured, shear y bend; viento proporcional a wind · normal; vértices anclados y suma de fuerzas por partícula.",
     video: banderasVideo,
     poster: "/posters/banderas.jpg",
     bg: "#064E3B",
@@ -226,6 +259,7 @@ const PROJECTS: ProjectVideo[] = [
     category: "Tema 3 · Masa-muelle 1D",
     description:
       "El pelo parte del modelo de cuerda masa-muelle 1D. Cada mechón se entiende como una cadena de partículas conectadas por muelles: las partículas interiores reciben fuerzas de sus vecinas, se integra su aceleración y se actualizan velocidad y posición. La rigidez k controla cuánto se resiste el pelo a estirarse, la masa afecta a la inercia y la amortiguación evita que oscile sin parar. Al tener muchos mechones con longitudes o pequeñas variaciones, el conjunto produce un comportamiento orgánico: caída por gravedad, recuperación elástica e interacción al levantar o estirar el pelo.",
+    model: "Cadena masa-muelle 1D: cada segmento aplica F = -k · x y Fd = -c · Δv; integración de aceleración, velocidad y posición en cada partícula.",
     video: hairSimulationVideo,
     poster: "/posters/pelo.jpg",
     bg: "#7C2D12",
@@ -233,6 +267,128 @@ const PROJECTS: ProjectVideo[] = [
     accent: "#FFEDD5",
     topic: "tema-3",
     link: "#",
+  },
+];
+
+const LABS: Array<{
+  id: LabId;
+  label: string;
+  title: string;
+  objective: string;
+  formulation: string;
+  scenario: string;
+  demos: LabDemo[];
+}> = [
+  {
+    id: "practica-1",
+    label: "Práctica 1",
+    title: "Métodos de integración numérica",
+    objective:
+      "Simular un fenómeno físico simple derivando sus ecuaciones diferenciales y comparar el comportamiento de distintos integradores numéricos: Euler explícito, Euler semi-implícito, Heun, RK2 y RK4.",
+    formulation:
+      "El escenario principal es un péndulo elástico bidimensional con fuerza elástica, peso y fricción lineal. Se acumulan fuerzas con Ftotal = Fe + Fw + Fd, se obtiene a = Ftotal / m y se integra el estado con métodos numéricos.",
+    scenario:
+      "Una partícula queda unida a un punto fijo mediante un muelle de longitud de reposo l0. La gravedad estira el sistema, el muelle intenta recuperar el equilibrio y la fricción disipa energía para analizar estabilidad y convergencia.",
+    demos: [
+      {
+        title: "Péndulo elástico 2D",
+        category: "P1 · Integradores",
+        description:
+          "Vídeo de la partícula suspendida de un punto fijo mediante un muelle. Permite observar cómo el sistema oscila, pierde energía por fricción y depende del integrador usado para avanzar el tiempo.",
+        model:
+          "Fe = -Ke · (L - l0) · dir, Fw = m · g, Fd = -Kd · v, a = Ftotal / m. Integración temporal con Euler explícito, semi-implícito, Heun, RK2 y RK4.",
+        video: ej1P1Video,
+        accent: "#7CF7FF",
+      },
+    ],
+  },
+  {
+    id: "practica-2",
+    label: "Práctica 2",
+    title: "Sistemas de partículas",
+    objective:
+      "Implementar y analizar sistemas con muchas partículas que interactúan entre sí, incluyendo atracción eléctrica, viento, fricción, colisiones y gestión eficiente de vecindarios.",
+    formulation:
+      "En el problema de partículas cargadas se usa |Fe| = Ka · qi · qj / d, fricción cuadrática y viento dependiente de la velocidad relativa. En el fluido se aplican gravedad, restitución en paredes y muelles asimétricos de colisión entre partículas.",
+    scenario:
+      "La práctica se divide entre un sistema de partículas cargadas con atracción y viento, y un recipiente donde muchas partículas colisionan para comportarse como un fluido aceitoso usando grid o hash para acelerar la detección de contactos.",
+    demos: [
+      {
+        title: "Partículas cargadas y viento",
+        category: "P2 · Problema 1",
+        description:
+          "Sistema de partículas con masas y cargas aleatorias. Las partículas se atraen entre sí, tienen tiempo de vida y además reciben una fuerza de viento basada en la velocidad relativa.",
+        model:
+          "|Fe| = Ka · qi · qj / d, Fd cuadrática, Fviento según velocidad relativa, Fresultante = ΣF, a = F / m e integración con Euler semi-implícito.",
+        video: vientoVideo,
+        accent: "#4DFFBE",
+      },
+      {
+        title: "Fluido con partículas",
+        category: "P2 · Problema 2",
+        description:
+          "Simulación de un conjunto de partículas dentro de un recipiente. Las partículas caen por gravedad, chocan con paredes y entre ellas, y se agrupan espacialmente para mejorar el coste de las colisiones.",
+        model:
+          "Colisión pared-partícula con coeficiente de restitución Cr; colisión partícula-partícula mediante muelle repulsivo asimétrico activado a distancia dm; gestión de vecinos con grid o hash.",
+        video: ej2P2Video,
+        accent: "#4DFFBE",
+      },
+    ],
+  },
+  {
+    id: "practica-3",
+    label: "Práctica 3",
+    title: "Objetos deformables",
+    objective:
+      "Preparar la simulación de objetos no rígidos mediante dos enfoques: un modelo dinámico basado en fuerzas elásticas y un modelo cinemático basado en propagación de perturbaciones.",
+    formulation:
+      "El modelo masa-muelle usa |Fe| = Ke · (l - l0) - Kd · dl/dt. La malla puede combinar conexiones STRUCTURAL, SHEAR y BEND para controlar estabilidad, deformación diagonal y resistencia a arrugas.",
+    scenario:
+      "El escenario propuesto es una portería formada por mallas rectangulares de nodos unidos por muelles, sobre la que impacta una pelota. Los vídeos muestran el ejercicio 1: deformación dinámica de la red y respuesta elástica de la malla.",
+    demos: [
+      {
+        title: "Red deformable",
+        category: "P3 · Ejercicio 1",
+        description:
+          "Primera demostración del objeto deformable: una malla de nodos conectados por muelles que conserva su forma general pero se deforma cuando recibe fuerzas externas.",
+        model:
+          "|Fe| = Ke · (l - l0) - Kd · dl/dt. Los nodos acumulan fuerzas de los muelles estructurales, diagonales y de flexión, y después se integra posición y velocidad.",
+        video: practica3Video1,
+        accent: "#FFE66D",
+      },
+      {
+        title: "Impacto sobre la portería",
+        category: "P3 · Ejercicio 1",
+        description:
+          "Segunda demostración del mismo modelo, centrada en la interacción entre la pelota y la red. La malla absorbe el impacto, oscila y recupera parcialmente su configuración.",
+        model:
+          "Colisión pelota-malla con respuesta elástica: la deformación depende de Ke, Kd, masa de los nodos, gravedad y velocidad inicial de la pelota.",
+        url: "https://www.youtube.com/watch?v=BSllYHXNvrQ",
+        accent: "#FFE66D",
+      },
+      {
+        title: "Ondas",
+        category: "P3 · Ejercicio 2",
+        description:
+          "Enlace al ejercicio de ondas, donde el objeto deformable se estudia desde un modelo cinemático: la perturbación se propaga por el medio sin calcular fuerzas elásticas nodo a nodo.",
+        model:
+          "Modelo de onda: propagación temporal de una perturbación sobre una geometría, controlando amplitud, frecuencia, fase y velocidad de propagación.",
+        url: "https://www.youtube.com/watch?v=v9AREArOS90",
+        accent: "#FFE66D",
+      },
+    ],
+  },
+  {
+    id: "practica-4",
+    label: "Práctica 4",
+    title: "Sólidos rígidos",
+    objective:
+      "Comprender el uso de motores físicos 2D para construir escenas con cuerpos rígidos sometidos a gravedad, fricción, contactos, torques y restricciones.",
+    formulation:
+      "La práctica usa Fisica, wrapper de Box2D en Processing. Los cuerpos rígidos tienen masa, volumen, velocidad lineal y angular; pueden recibir fuerzas y torques, y conectarse mediante joints.",
+    scenario:
+      "Las actividades incluyen apilamiento estable de cuerpos, torres de rectángulos y conservación del momento angular en cuerpos unidos por una varilla o joint. Los vídeos se añadirán cuando estén disponibles.",
+    demos: [],
   },
 ];
 
@@ -246,6 +402,7 @@ export default function PortfolioVideoCarousel() {
 
       {page === "inicio" && <InicioPage setPage={setPage} />}
       {page === "videos" && <VideosPage />}
+      {page === "labs" && <LabsPage />}
     </main>
   );
 }
@@ -260,9 +417,10 @@ function MainNavbar({
   const items: { id: Page; label: string }[] = [
     { id: "inicio", label: "Inicio" },
     { id: "videos", label: "Vídeos" },
+    { id: "labs", label: "Labs" },
   ];
 
-  const isDark = page === "inicio" || page === "videos";
+  const isDark = page === "inicio" || page === "videos" || page === "labs";
 
   return (
     <header className="fixed inset-x-0 top-0 z-[120] bg-[#0f1115]/35 backdrop-blur-xl">
@@ -356,7 +514,8 @@ function InicioPage({ setPage }: { setPage: (page: Page) => void }) {
           <p className="mt-6 max-w-2xl text-[17px] leading-8 text-white/78">
             Estudiante de Ingeniería Multimedia con interés en simulación física, diseño interactivo y visualización
             creativa. Este portfolio reúne mis vídeos y prácticas de Processing: Tema 1 Integradores, Tema 2 Sistemas
-            de partículas y Tema 3 Masa muelle.
+            de partículas y Tema 3 Masa muelle. Cada ficha presenta el escenario, el modelo físico empleado con sus
+            fórmulas y un vídeo demostrativo breve, sin incluir código fuente.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -387,10 +546,6 @@ function InicioPage({ setPage }: { setPage: (page: Page) => void }) {
         </div>
 
         <div className="relative">
-          <div className="absolute -right-4 top-8 hidden rounded-[18px] border border-white/15 bg-[#FFE66D] px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-[#111317] shadow-2xl shadow-black/30 lg:block">
-            Masa · muelle · viento
-          </div>
-
           <div className="relative ml-auto overflow-hidden rounded-[28px] border border-white/18 bg-white/10 p-2 shadow-[0_40px_120px_rgba(0,0,0,0.45)] backdrop-blur-xl lg:w-[94%] lg:rotate-[-1deg] lg:rounded-[36px] lg:p-3">
             <video
               src={featured.video}
@@ -526,6 +681,184 @@ function InicioPreviewItem({ project }: { project: ProjectVideo }) {
       </div>
       <p className="mt-2 truncate text-sm font-black text-white">{project.title}</p>
     </div>
+  );
+}
+
+function LabsPage() {
+  const [selectedLab, setSelectedLab] = useState<LabId>("practica-1");
+  const lab = LABS.find((item) => item.id === selectedLab) ?? LABS[0];
+  const labProjects = lab.demos;
+  const accent = LAB_ACCENTS[selectedLab].color;
+  const Icon =
+    LAB_ACCENTS[selectedLab].icon === "waves"
+      ? Waves
+      : LAB_ACCENTS[selectedLab].icon === "atom"
+        ? Atom
+        : LAB_ACCENTS[selectedLab].icon === "boxes"
+          ? Boxes
+          : Gauge;
+
+  return (
+    <section className="relative min-h-[calc(100vh-73px)] overflow-hidden bg-[#0f1115] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#12151d_0%,#17324a_38%,#0f5b55_72%,#171821_100%)]" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-[7%] z-[1] flex select-none justify-center overflow-hidden text-white/[0.06]"
+        style={{
+          fontFamily: "Anton, sans-serif",
+          fontSize: "clamp(86px, 18vw, 260px)",
+          lineHeight: 1,
+          textTransform: "uppercase",
+        }}
+      >
+        LABS
+      </div>
+      <div className="pointer-events-none absolute right-[-16vw] top-[12%] h-[48vw] max-h-[620px] min-h-[320px] w-[48vw] min-w-[320px] rounded-full blur-3xl" style={{ backgroundColor: accent, opacity: 0.28 }} />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-14">
+        <header className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr] lg:items-end">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-white/50">Entrega de laboratorio</p>
+            <h1 className="mt-3 text-[clamp(3.2rem,11vw,7rem)] uppercase leading-[0.88] text-white" style={{ fontFamily: "Anton, sans-serif" }}>
+              Labs
+            </h1>
+          </div>
+
+          
+        </header>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-[300px_1fr]">
+          <aside className="grid gap-3 lg:content-start">
+            {LABS.map((item) => {
+              const active = item.id === selectedLab;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedLab(item.id)}
+                  className={`rounded-[20px] border p-4 text-left transition ${
+                    active
+                      ? "border-white/36 bg-white/16 shadow-2xl shadow-black/20"
+                      : "border-white/14 bg-white/8 hover:border-white/28 hover:bg-white/12"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-black uppercase tracking-[0.16em] text-white/48">{item.label}</span>
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: LAB_ACCENTS[item.id].color }} />
+                  </div>
+                  <p className="mt-3 text-lg font-black uppercase text-white">{item.title}</p>
+                  <p className="mt-2 text-xs leading-5 text-white/58">{item.objective}</p>
+                </button>
+              );
+            })}
+          </aside>
+
+          <article className="rounded-[28px] border border-white/16 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-md sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-black/18 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-white/62">
+                  <Icon className="h-4 w-4" style={{ color: accent }} strokeWidth={2.3} />
+                  {lab.label}
+                </div>
+                <h2 className="mt-4 text-[clamp(2.2rem,6vw,4.4rem)] uppercase leading-none text-white" style={{ fontFamily: "Anton, sans-serif" }}>
+                  {lab.title}
+                </h2>
+              </div>
+
+              <div className="rounded-[18px] border border-white/16 bg-black/18 px-4 py-3 text-right">
+                <p className="text-3xl font-black" style={{ color: accent }}>{String(labProjects.length).padStart(2, "0")}</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-white/50">vídeos</p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              <LabTextBlock title="Objetivo" text={lab.objective} />
+              <LabTextBlock title="Formulación" text={lab.formulation} />
+              <LabTextBlock title="Escenario" text={lab.scenario} />
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {labProjects.length > 0 ? (
+                labProjects.map((project) => <LabVideoCard key={project.title} project={project} />)
+              ) : (
+                <div className="rounded-[22px] border border-dashed border-white/20 bg-black/16 p-6 text-center md:col-span-2">
+                  <p className="text-sm font-black uppercase tracking-[0.14em] text-white/48">Vídeos pendientes</p>
+                  <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/68">
+                    Esta práctica queda preparada con su objetivo, formulación y escenario. Los vídeos demostrativos se
+                    incorporarán cuando estén disponibles.
+                  </p>
+                </div>
+              )}
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LabTextBlock({ title, text }: { title: string; text: string }) {
+  return (
+    <section className="rounded-[20px] border border-white/14 bg-black/18 p-4">
+      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white/44">{title}</p>
+      <p className="mt-3 text-sm leading-6 text-white/72">{text}</p>
+    </section>
+  );
+}
+
+function LabVideoCard({ project }: { project: LabDemo }) {
+  return (
+    <article className="overflow-hidden rounded-[22px] border border-white/14 bg-black/20">
+      {project.video ? (
+        <video
+          className="aspect-video w-full bg-black object-cover"
+          src={project.video}
+          controls
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <a
+          href={project.url}
+          target="_blank"
+          rel="noreferrer"
+          className="flex aspect-video w-full items-center justify-center bg-black/34 p-6 text-center transition hover:bg-black/48"
+        >
+          <span>
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FFE66D] text-[#111317]">
+              <ExternalLink className="h-5 w-5" strokeWidth={2.4} />
+            </span>
+            <span className="mt-4 block text-sm font-black uppercase tracking-[0.14em] text-white/72">
+              Ver en YouTube
+            </span>
+          </span>
+        </a>
+      )}
+      <div className="p-4">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-white/42">{project.category}</p>
+        <h3 className="mt-2 text-xl font-black text-white">{project.title}</h3>
+        <p className="mt-3 text-sm leading-6 text-white/70">{project.model}</p>
+        {project.url && (
+          <a
+            href={project.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/76 transition hover:bg-white/16 hover:text-white"
+          >
+            Abrir enlace
+            <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </a>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -805,7 +1138,7 @@ function ProjectInfo({
   const currentTopic = TOPICS.find((topic) => topic.id === selectedTopic);
 
   return (
-    <article className="mx-auto mt-2 max-w-3xl text-center">
+    <article className="mx-auto mt-2 max-w-4xl text-center">
       <p className="hidden">
         {currentTopic?.label} · Proyecto {String(activeIndex + 1).padStart(2, "0")}
       </p>
@@ -816,6 +1149,11 @@ function ProjectInfo({
       >
         {project.title}
       </h2>
+
+      <div className="mx-auto mt-5 max-w-3xl rounded-[18px] border border-white/16 bg-black/18 px-5 py-4 text-left shadow-xl shadow-black/10 backdrop-blur-md">
+        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white/48">Modelo físico</p>
+        <p className="mt-2 text-sm leading-6 text-white/82 sm:text-[15px]">{project.model}</p>
+      </div>
 
       <p className="mx-auto mt-4 max-w-4xl text-[15px] leading-7 text-white/76 sm:text-base sm:leading-8">
         {project.description}
