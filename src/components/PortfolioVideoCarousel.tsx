@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import banderasVideo from "../assets/videos/banderas.mp4";
 import bubbleShooterVideo from "../assets/videos/bubbleshooter.mp4";
+import carreraCanicasVideo from "../assets/videos/carrera_canicas.mp4";
 import ej1P1Video from "../assets/videos/ej1_p1.mp4";
 import ej2P2Video from "../assets/videos/ej2_p2.mp4";
 import emisoresVideo from "../assets/videos/emisores.mp4";
@@ -387,8 +388,19 @@ const LABS: Array<{
     formulation:
       "La práctica usa Fisica, wrapper de Box2D en Processing. Los cuerpos rígidos tienen masa, volumen, velocidad lineal y angular; pueden recibir fuerzas y torques, y conectarse mediante joints.",
     scenario:
-      "Las actividades incluyen apilamiento estable de cuerpos, torres de rectángulos y conservación del momento angular en cuerpos unidos por una varilla o joint. Los vídeos se añadirán cuando estén disponibles.",
-    demos: [],
+      "Las actividades incluyen apilamiento estable de cuerpos, torres de rectángulos, recorridos con obstáculos y conservación del momento angular en cuerpos unidos por una varilla o joint.",
+    demos: [
+      {
+        title: "Carrera de canicas",
+        category: "P4 · Sólidos rígidos",
+        description:
+          "Escenario de cuerpos rígidos en el que varias canicas descienden por un recorrido con obstáculos. La simulación permite observar cómo la gravedad acelera los cuerpos, cómo las colisiones modifican su trayectoria y cómo el rozamiento y la restitución influyen en la pérdida o conservación de energía.",
+        model:
+          "Modelo Box2D/Fisica: cuerpos circulares con masa, velocidad lineal y angular, gravedad constante, contactos con normales de colisión, coeficiente de restitución para el rebote y fricción para disipar energía durante el contacto.",
+        video: carreraCanicasVideo,
+        accent: "#F0ABFC",
+      },
+    ],
   },
 ];
 
@@ -1270,4 +1282,3 @@ function CarouselControls({
     </div>
   );
 }
-
