@@ -14,6 +14,7 @@ import muelleVideo from "../assets/videos/muelle.mp4";
 import partiGirandoVideo from "../assets/videos/partiGirando.mp4";
 import particulaFlotanteVideo from "../assets/videos/particulaFLotante.mp4";
 import telaBolaVideo from "../assets/videos/telabola.mp4";
+import tiroParabolicoVideo from "../assets/videos/tiroparabolico.mp4";
 import practica3Video1 from "../assets/videos/video1.mp4";
 import vientoVideo from "../assets/videos/viento.mp4";
 import {
@@ -299,6 +300,16 @@ const LABS: Array<{
         model:
           "Fe = -Ke · (L - l0) · dir, Fw = m · g, Fd = -Kd · v, a = Ftotal / m. Integración temporal con Euler explícito, semi-implícito, Heun, RK2 y RK4.",
         video: ej1P1Video,
+        accent: "#7CF7FF",
+      },
+      {
+        title: "Tiro parabólico",
+        category: "P1 · Ejercicio 2",
+        description:
+          "Simulación del movimiento de un proyectil lanzado con una velocidad inicial inclinada. El vídeo muestra cómo la componente horizontal avanza de forma uniforme mientras la componente vertical cambia por la aceleración de la gravedad, generando una trayectoria parabólica.",
+        model:
+          "Movimiento bajo gravedad constante: ax = 0, ay = g, vx(t) = v0x, vy(t) = v0y + g · t, x(t) = x0 + v0x · t, y(t) = y0 + v0y · t + 1/2 · g · t². El estado se actualiza con los integradores numéricos de la práctica.",
+        video: tiroParabolicoVideo,
         accent: "#7CF7FF",
       },
     ],
